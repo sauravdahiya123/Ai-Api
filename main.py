@@ -22,7 +22,7 @@ client = Groq(api_key="")
 # 🔐 DJANGO AUTH API
 # -----------------------------
 
-BASE_URL="http://127.0.0.1:8000"
+BASE_URL="http://204.168.204.160:8000/"
 
 DJANGO_VERIFY = f"{BASE_URL}/verify-user/"
 DJANGO_UPDATE_USAGE = f"{BASE_URL}/update-usage/"
