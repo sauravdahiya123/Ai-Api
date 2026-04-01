@@ -18,6 +18,32 @@ HEADERS = {"User-Agent": "Mozilla/5.0"}
 def create_embedding(text):
     return model.encode(text)
 
+import pickle , os
+def save_index(user_id, index, docs):
+    os.makedirs("storage", exist_ok=True)
+
+    faiss.write_index(index, f"storage/{user_id}.index")
+
+    with open(f"storage/{user_id}.pkl", "wb") as f:
+        pickle.dump(docs, f)
+
+
+def load_index(user_id):
+    index_path = f"storage/{user_id}.index"
+    docs_path = f"storage/{user_id}.pkl"
+
+    if os.path.exists(index_path) and os.path.exists(docs_path):
+        index = faiss.read_index(index_path)
+
+        with open(docs_path, "rb") as f:
+            docs = pickle.load(f)
+
+        user_indexes[user_id] = index
+        user_docs[user_id] = docs
+
+        return index, docs
+
+    return get_index(user_id)
 
 # ✅ GET INDEX
 def get_index(user_id):
@@ -33,24 +59,23 @@ def split_text(text, size=500):
 
 
 def add_to_db(user_id, text):
-    index, docs = get_index(user_id)
-
+    # index, docs = get_index(user_id)
+    index, docs = load_index(user_id)
     chunks = split_text(text)  # 🔥 important
 
     embeddings = model.encode(chunks)
-
+    print("Save")
     for i, emb in enumerate(embeddings):
         emb = np.array([emb]).astype("float32")
         index.add(emb)
         docs.append(chunks[i])
+    save_index(user_id, index, docs)
+
 
 
 # ✅ SEARCH (improved)
 def search(user_id, query, top_k=5):
-    if user_id not in user_docs:
-        return ""
-
-    index, docs = get_index(user_id)
+    index, docs = load_index(user_id)
 
     if not docs or index.ntotal == 0:
         return ""
