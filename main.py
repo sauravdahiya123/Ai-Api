@@ -44,7 +44,9 @@ def get_user(api_key: str = None):
             "user_id": str(data["user_id"]),
             "limit": data["limit"],
             "used": data["used"],
-            "api_key": api_key
+            "api_key": api_key,
+            "language": data.get("language", "en")   # 🔥 ADD
+
         }
 
     except:
@@ -228,6 +230,7 @@ def ask(q: str, vistor_id: str, api_key: str, user=Depends(get_user)):
     from groq import Groq
 
     user_id = user["user_id"]
+    language = user["language"]
 
     # ============================================
     # 🔥 LIMIT CHECK
@@ -282,7 +285,12 @@ def ask(q: str, vistor_id: str, api_key: str, user=Depends(get_user)):
     # 🔥 STEP 3: HYBRID PROMPT
     # ============================================
     
-    
+    if language == "hi":
+        lang_text = "Hindi"
+    elif language == "hinglish":
+        lang_text = "Hinglish (Hindi written in English)"
+    else:
+        lang_text = "English"
 
 
     prompt = f"""
@@ -307,7 +315,8 @@ Rules:
 - If extra details are available in context, include them smartly
 - If context has no useful data, still format and improve the saved answer
 
-- Answer in same language as question (Hindi / Hinglish / English)
+- Reply ONLY in {lang_text}
+- Do NOT switch language
 
 Saved Info:
 {saved_answers}
